@@ -33,13 +33,13 @@ use crate::{Endianness, PcapError, PcapResult};
 ///     pcapng_writer.write_block(&block).unwrap();
 /// }
 /// ```
-pub struct PcapNgWriter<W: Write> {
-    section: SectionHeaderBlock<'static>,
-    interfaces: Vec<InterfaceDescriptionBlock<'static>>,
+pub struct PcapNgWriter<'s, W: Write> {
+    section: SectionHeaderBlock<'s>,
+    interfaces: Vec<InterfaceDescriptionBlock<'s>>,
     writer: W,
 }
 
-impl<W: Write> PcapNgWriter<W> {
+impl<'s, W: Write> PcapNgWriter<'s, W> {
     /// Creates a new [`PcapNgWriter`] from an existing writer.
     ///
     /// Defaults to the native endianness of the CPU.
@@ -70,7 +70,7 @@ impl<W: Write> PcapNgWriter<W> {
     }
 
     /// Creates a new [`PcapNgWriter`] from an existing writer with the given section header.
-    pub fn with_section_header(mut writer: W, section: SectionHeaderBlock<'static>) -> PcapResult<Self> {
+    pub fn with_section_header(mut writer: W, section: SectionHeaderBlock<'s>) -> PcapResult<Self> {
         match section.endianness {
             Endianness::Big => section.clone().into_block().write_to::<BigEndian, _>(&mut writer).map_err(PcapError::IoError)?,
             Endianness::Little => section.clone().into_block().write_to::<LittleEndian, _>(&mut writer).map_err(PcapError::IoError)?,
@@ -218,12 +218,12 @@ impl<W: Write> PcapNgWriter<W> {
     }
 
     /// Returns the current [`SectionHeaderBlock`].
-    pub fn section(&self) -> &SectionHeaderBlock<'static> {
+    pub fn section(&self) -> &SectionHeaderBlock<'_> {
         &self.section
     }
 
     /// Returns all the current [`InterfaceDescriptionBlock`].
-    pub fn interfaces(&self) -> &[InterfaceDescriptionBlock<'static>] {
+    pub fn interfaces(&self) -> &[InterfaceDescriptionBlock<'_>] {
         &self.interfaces
     }
 }
