@@ -18,14 +18,14 @@ use {
 /// State that must be maintained whilst reading or writing a PcapNg stream.
 ///
 /// This state is necessary because the encoding of blocks depends on
-/// information seen earlier in the stream, such as the [Endianness] of the
-/// [SectionHeaderBlock] and the [InterfaceDescriptionOption::IfTsResol]
-/// option on each [InterfaceDescriptionBlock].
+/// information seen earlier in the stream, such as the [`Endianness`] of the
+/// [`SectionHeaderBlock`] and the [`TsResolution`] of each
+/// [`InterfaceDescriptionBlock`].
 ///
-/// Normally this state is maintained internally by a [PcapNgReader] or
-/// [PcapNgWriter], but it's also possible to create a [PcapNgState] with
-/// [PcapNgState::default], and then update it by calling
-/// [PcapNgState::update_for_block] or [PcapNgState::update_for_raw_block].
+/// Normally this state is maintained internally by a [`PcapNgReader`] or
+/// [`PcapNgWriter`], but it's also possible to create a new [`PcapNgState`]
+/// with [`PcapNgState::default`], and then update it by calling
+/// [`PcapNgState::update_for_block`] or [`PcapNgState::update_for_raw_block`].
 ///
 #[derive(Default)]
 pub struct PcapNgState<'s> {
@@ -61,7 +61,7 @@ impl<'s> PcapNgState<'s> {
     pub fn update_for_raw_block<B: ByteOrder>(&mut self, raw_block: &RawBlock) -> Result<(), PcapError> {
         match raw_block.type_ {
             SECTION_HEADER_BLOCK | INTERFACE_DESCRIPTION_BLOCK => {
-                let block = raw_block.clone().try_into_block::<B>()?;
+                let block = raw_block.clone().try_into_block::<B>(self)?;
                 self.update_for_block(&block)
             },
             _ => Ok(())
