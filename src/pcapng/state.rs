@@ -1,6 +1,9 @@
+use std::io::Write;
 use std::time::Duration;
 
 use byteorder_slice::ByteOrder;
+use byteorder_slice::byteorder::WriteBytesExt;
+use byteorder_slice::result::ReadSlice;
 
 use super::blocks::block_common::{Block, RawBlock};
 use super::blocks::interface_description::{InterfaceDescriptionBlock, TsResolution};
@@ -68,7 +71,14 @@ impl<'s> PcapNgState<'s> {
         }
     }
 
-    pub(crate) fn decode_timestamp(&self, interface_id: u32, ts_raw: u64) -> Result<Duration, PcapError> {
+    pub(crate) fn decode_timestamp<B: ByteOrder>(&self, interface_id: u32, slice: &mut &[u8]) -> Result<Duration, PcapError> {
+        let timestamp_high = slice
+            .read_u32::<B>()
+            .map_err(|_| PcapError::IncompleteBuffer)? as u64;
+        let timestamp_low = slice
+            .read_u32::<B>()
+            .map_err(|_| PcapError::IncompleteBuffer)? as u64;
+        let ts_raw = (timestamp_high << 32) + timestamp_low;
         let ts_resolution = self
             .ts_resolutions
             .get(interface_id as usize)
@@ -77,15 +87,20 @@ impl<'s> PcapNgState<'s> {
         Ok(Duration::from_nanos(ts_nanos))
     }
 
-    pub(crate) fn encode_timestamp(&self, interface_id: u32, timestamp: Duration) -> std::io::Result<u64> {
+    pub(crate) fn encode_timestamp<B: ByteOrder, W: Write>(&self, interface_id: u32, timestamp: Duration, writer: &mut W) -> std::io::Result<()> {
         let ts_resolution = self
             .ts_resolutions
             .get(interface_id as usize)
             .ok_or(std::io::Error::other("Invalid interface ID"))?;
         let ts_raw = timestamp.as_nanos() / ts_resolution.to_nano_secs() as u128;
-        ts_raw
+        let ts_raw: u64 = ts_raw
             .try_into()
             .map_err(|_| std::io::Error::other(
-                "Timestamp too big, please use a bigger timestamp resolution"))
+                "Timestamp too big, please use a bigger timestamp resolution"))?;
+        let timestamp_high = (ts_raw >> 32) as u32;
+        let timestamp_low = (ts_raw & 0xFFFFFFFF) as u32;
+        writer.write_u32::<B>(timestamp_high)?;
+        writer.write_u32::<B>(timestamp_low)?;
+        Ok(())
     }
 }
