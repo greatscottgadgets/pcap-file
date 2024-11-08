@@ -6,7 +6,7 @@ use super::blocks::block_common::{Block, PcapNgBlock};
 use super::blocks::interface_description::InterfaceDescriptionBlock;
 use super::blocks::section_header::SectionHeaderBlock;
 use super::{PcapNgState, RawBlock};
-use crate::{Endianness, PcapError, PcapResult};
+use crate::{Endianness, PcapResult};
 
 
 /// Write a PcapNg to a writer.
@@ -81,12 +81,8 @@ impl<W: Write> PcapNgWriter<W> {
         state.update_for_block(&block)?;
 
         match section.endianness {
-            Endianness::Big => block
-                .write_to::<BigEndian, _>(&state, &mut writer)
-                .map_err(PcapError::IoError)?,
-            Endianness::Little => block
-                .write_to::<LittleEndian, _>(&state, &mut writer)
-                .map_err(PcapError::IoError)?,
+            Endianness::Big => block.write_to::<BigEndian, _>(&state, &mut writer)?,
+            Endianness::Little => block.write_to::<LittleEndian, _>(&state, &mut writer)?,
         };
 
         Ok(Self { state, writer })
@@ -127,8 +123,8 @@ impl<W: Write> PcapNgWriter<W> {
         self.state.update_for_block(block)?;
 
         match self.state.section.endianness {
-            Endianness::Big => block.write_to::<BigEndian, _>(&self.state, &mut self.writer).map_err(PcapError::IoError),
-            Endianness::Little => block.write_to::<LittleEndian, _>(&self.state, &mut self.writer).map_err(PcapError::IoError),
+            Endianness::Big => block.write_to::<BigEndian, _>(&self.state, &mut self.writer),
+            Endianness::Little => block.write_to::<LittleEndian, _>(&self.state, &mut self.writer),
         }
     }
 
@@ -173,14 +169,12 @@ impl<W: Write> PcapNgWriter<W> {
     pub fn write_raw_block(&mut self, block: &RawBlock) -> PcapResult<usize> {
         match self.state.section.endianness {
             Endianness::Big => {
-                let written = block.write_to::<BigEndian, _>(&mut self.writer)
-                    .map_err(PcapError::IoError)?;
+                let written = block.write_to::<BigEndian, _>(&mut self.writer)?;
                 self.state.update_for_raw_block::<BigEndian>(block)?;
                 Ok(written)
             },
             Endianness::Little => {
-                let written = block.write_to::<LittleEndian, _>(&mut self.writer)
-                    .map_err(PcapError::IoError)?;
+                let written = block.write_to::<LittleEndian, _>(&mut self.writer)?;
                 self.state.update_for_raw_block::<LittleEndian>(block)?;
                 Ok(written)
             }
