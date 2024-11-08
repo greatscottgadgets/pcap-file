@@ -36,8 +36,8 @@ pub struct PcapNgState<'s> {
     pub(crate) section: SectionHeaderBlock<'s>,
     /// List of the interfaces of the current section of the pcapng
     pub(crate) interfaces: Vec<InterfaceDescriptionBlock<'s>>,
-    /// Timestamp resolutions corresponding to the interfaces
-    pub(crate) ts_resolutions: Vec<TsResolution>,
+    /// Timestamp resolutions and offsets corresponding to the interfaces
+    pub(crate) ts_parameters: Vec<(TsResolution, Duration)>,
 }
 
 impl<'s> PcapNgState<'s> {
@@ -47,12 +47,12 @@ impl<'s> PcapNgState<'s> {
             Block::SectionHeader(blk) => {
                 self.section = blk.clone().into_owned();
                 self.interfaces.clear();
-                self.ts_resolutions.clear();
+                self.ts_parameters.clear();
             },
             Block::InterfaceDescription(blk) => {
                 let ts_resolution = blk.ts_resolution()?;
-                self.ts_resolutions.push(ts_resolution);
-
+                let ts_offset = Duration::from_secs(blk.ts_offset()?);
+                self.ts_parameters.push((ts_resolution, ts_offset));
                 self.interfaces.push(blk.clone().into_owned());
             },
             _ => {},
@@ -79,20 +79,21 @@ impl<'s> PcapNgState<'s> {
             .read_u32::<B>()
             .map_err(|_| PcapError::IncompleteBuffer)? as u64;
         let ts_raw = (timestamp_high << 32) + timestamp_low;
-        let ts_resolution = self
-            .ts_resolutions
+        let (ts_resolution, ts_offset) = self
+            .ts_parameters
             .get(interface_id as usize)
             .ok_or(PcapError::InvalidInterfaceId(interface_id))?;
         let ts_nanos = ts_raw * ts_resolution.to_nano_secs() as u64;
-        Ok(Duration::from_nanos(ts_nanos))
+        Ok(Duration::from_nanos(ts_nanos) + *ts_offset)
     }
 
     pub(crate) fn encode_timestamp<B: ByteOrder, W: Write>(&self, interface_id: u32, timestamp: Duration, writer: &mut W) -> Result<(), PcapError> {
-        let ts_resolution = self
-            .ts_resolutions
+        let (ts_resolution, ts_offset) = self
+            .ts_parameters
             .get(interface_id as usize)
             .ok_or(PcapError::InvalidInterfaceId(interface_id))?;
-        let ts_raw = timestamp.as_nanos() / ts_resolution.to_nano_secs() as u128;
+        let ts_relative = timestamp - *ts_offset;
+        let ts_raw = ts_relative.as_nanos() / ts_resolution.to_nano_secs() as u128;
         let ts_raw: u64 = ts_raw
             .try_into()
             .or(Err(PcapError::TimestampTooBig))?;

@@ -93,6 +93,18 @@ impl<'a> InterfaceDescriptionBlock<'a> {
 
         ts_resol
     }
+
+    /// Returns the timestamp offset of the interface.
+    /// If no ts_resolution is set, defaults to 0.
+    pub fn ts_offset(&self) -> Result<u64, PcapError> {
+        for opt in &self.options {
+            if let InterfaceDescriptionOption::IfTsOffset(offset) = opt {
+                return Ok(*offset)
+            }
+        }
+
+        Ok(0)
+    }
 }
 
 
