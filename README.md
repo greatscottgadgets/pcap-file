@@ -23,7 +23,7 @@ Add it to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-pcap-file-gsg = "3.0.0-rc2"
+pcap-file-gsg = "3.0.0-rc3"
 ```
 
 ## Examples
