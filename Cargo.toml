@@ -1,13 +1,13 @@
 [package]
-name = "pcap-file"
+name = "pcap-file-gsg"
 edition = "2021"
-version = "3.0.0-rc1"
-authors = ["Courvoif <courvoif@pm.me>"]
+version = "3.0.0-rc2"
+authors = ["Courvoif <courvoif@pm.me>", "Great Scott Gadgets <dev@greatscottgadgets.com>"]
 description = "A crate to parse, read and write Pcap and PcapNg"
 
 license = "MIT"
-documentation = "https://docs.rs/pcap-file/"
-repository = "https://github.com/courvoif/pcap-file"
+documentation = "https://docs.rs/pcap-file-gsg/"
+repository = "https://github.com/greatscottgadgets/pcap-file"
 readme = "README.md"
 keywords = ["pcap", "pcapng", "parse", "read", "write"]
 categories = ["encoding", "parsing"]

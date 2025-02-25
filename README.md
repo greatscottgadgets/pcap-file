@@ -1,4 +1,6 @@
-# pcap-file
+# pcap-file-gsg
+
+This is a fork of the [pcap-file](https://github.com/courvoif/pcap-file) crate that is maintained by [Great Scott Gadgets](https://greatscottgadgets.com/). It is being published under a separate name so that we can depend on it in [Packetry](https://github.com/greatscottgadgets/packetry/). In the longer term we would rather merge our changes upstream, so we recommend not depending on this fork unless you specifically need to.
 
 Provides parsers, readers and writers for Pcap and PcapNg files.
 
@@ -6,22 +8,22 @@ For Pcap files see the pcap module.
 
 For PcapNg files see the pcapng module.
 
-[![Crates.io](https://img.shields.io/crates/v/pcap-file.svg)](https://crates.io/crates/pcap-file)
-[![rustdoc](https://img.shields.io/badge/Doc-pcap--file-green.svg)](https://docs.rs/pcap-file/)
-[![Crates.io](https://img.shields.io/crates/l/pcap-file.svg)](https://github.com/courvoif/pcap-file/blob/master/LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/pcap-file-gsg.svg)](https://crates.io/crates/pcap-file-gsg)
+[![rustdoc](https://img.shields.io/badge/Doc-pcap--file--gsg-green.svg)](https://docs.rs/pcap-file-gsg/)
+[![Crates.io](https://img.shields.io/crates/l/pcap-file-gsg.svg)](https://github.com/greatscottgadgets/pcap-file/blob/master/LICENSE)
 
 ## Documentation
 
-<https://docs.rs/pcap-file>
+<https://docs.rs/pcap-file-gsg>
 
 ## Installation
 
-This crate is on [crates.io](https://crates.io/crates/pcap-file).
+This crate is on [crates.io](https://crates.io/crates/pcap-file-gsg).
 Add it to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-pcap-file = "3.0.0-rc1"
+pcap-file-gsg = "3.0.0-rc2"
 ```
 
 ## Examples
